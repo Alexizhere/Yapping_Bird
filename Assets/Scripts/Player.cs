@@ -2,21 +2,31 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    private SpriteRenderer spriteRenderer;
     public Sprite[] sprites;
-    private int spriteIndex;
-    private Vector3 direction;
-    public float gravity = -9.8f;
     public float strength = 5f;
+    public float gravity = -9.81f;
+    public float tilt = 5f;
+
+    private SpriteRenderer spriteRenderer;
+    private Vector3 direction;
+    private int spriteIndex;
 
     private void Awake()
     {
-            spriteRenderer = GetComponent<SpriteRenderer>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     private void Start()
     {
         InvokeRepeating(nameof(AnimateSprite), 0.15f, 0.15f);
+    }
+
+    private void OnEnable()
+    {
+        Vector3 position = transform.position;
+        position.y = 0f;
+        transform.position = position;
+        direction = Vector3.zero;
     }
 
     private void Update()
@@ -25,17 +35,15 @@ public class Player : MonoBehaviour
         {
             direction = Vector3.up * strength;
         }
-        if (Input.touchCount > 0) 
-        {
-            Touch touch = Input.GetTouch(0);
 
-            if (touch.phase == TouchPhase.Began)
-            {
-                direction = Vector3.up * strength;
-            }
-        }
+        // Apply gravity and update the position
         direction.y += gravity * Time.deltaTime;
         transform.position += direction * Time.deltaTime;
+
+        // Tilt the bird based on the direction
+        Vector3 rotation = transform.eulerAngles;
+        rotation.z = direction.y * tilt;
+        transform.eulerAngles = rotation;
     }
 
     private void AnimateSprite()
@@ -46,18 +54,22 @@ public class Player : MonoBehaviour
         {
             spriteIndex = 0;
         }
-        spriteRenderer.sprite = sprites[spriteIndex];
+
+        if (spriteIndex < sprites.Length && spriteIndex >= 0)
+        {
+            spriteRenderer.sprite = sprites[spriteIndex];
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.gameObject.tag == "Obstacle" )
+        if (other.gameObject.CompareTag("Obstacle"))
         {
-            FindObjectOfType<Game_Manager>().GameOver();
+            GameManager.Instance.GameOver();
         }
-        else if(other.gameObject.tag == "Scoring")
+        else if (other.gameObject.CompareTag("Scoring"))
         {
-            FindObjectOfType<Game_Manager>().IncreaseScore();
+            GameManager.Instance.IncreaseScore();
         }
     }
 
