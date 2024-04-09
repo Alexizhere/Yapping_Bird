@@ -19,7 +19,6 @@ public class Player : MonoBehaviour
         InvokeRepeating(nameof(AnimateSprite), 0.15f, 0.15f);
     }
 
-
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
